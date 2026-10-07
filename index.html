@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CertifyStudio — Enterprise Bulk Certificate Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <div class="app-container">
+    <header class="glass-nav">
+      <div class="nav-brand">
+        <div class="apple-badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-title">CertifyStudio</span>
+          <span class="brand-sub">Bulk Generation Engine</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">Engine Ready</span>
+        </div>
+        <a href="https://github.com/ErSam007/Bulk-Certificate-Generator-API" target="_blank" class="nav-link-btn">
+          <span>GitHub</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="glass-card form-panel">
+        <div class="panel-header">
+          <span class="step-tag">Step 1 & 2</span>
+          <h2>Certificate Setup</h2>
+          <p class="panel-desc">Configure issuance details and paste or upload recipient records.</p>
+        </div>
+
+        <form id="jobForm">
+          <div class="field-block">
+            <label for="eventName">Event or Course Name</label>
+            <input type="text" id="eventName" value="Advanced AI & Cloud Architecture Masterclass" placeholder="e.g. Executive Leadership Program" required>
+          </div>
+
+          <div class="field-row">
+            <div class="field-block">
+              <label for="issuerName">Authorized Signatory</label>
+              <input type="text" id="issuerName" value="Director of Certification Board" required>
+            </div>
+            <div class="field-block">
+              <label for="issueDate">Issue Date</label>
+              <input type="date" id="issueDate" required>
+            </div>
+          </div>
+
+          <div class="field-block">
+            <div class="field-header-row">
+              <label for="recipientsInput">Recipients List</label>
+              <button type="button" id="loadSampleBtn" class="pill-btn-sm">Fill Demo List</button>
+            </div>
+            <textarea id="recipientsInput" rows="5" placeholder="Alice Johnson, alice@example.com&#10;Bob Martinez, bob@example.com&#10;Claire Sterling, claire@example.com" required></textarea>
+          </div>
+
+          <div class="drop-zone" id="csvDropZone">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span id="dropZoneText">Drag & drop CSV or click to browse</span>
+            <input type="file" id="csvFileInput" accept=".csv">
+          </div>
+
+          <button type="submit" id="submitBtn" class="apple-btn-primary">
+            <span>Generate Certificates</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <section class="glass-card result-panel">
+        <div class="panel-header">
+          <span class="step-tag">Output</span>
+          <h2>Live Generation Studio</h2>
+          <p class="panel-desc">Watch real-time background rendering and download PDF bundles.</p>
+        </div>
+
+        <div id="jobPlaceholder" class="glass-empty">
+          <div class="empty-icon-wrap">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="4" width="18" height="16" rx="3"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <line x1="7" y1="15" x2="11" y2="15"/>
+            </svg>
+          </div>
+          <h3>Ready for issuance</h3>
+          <p>Fill in the certificate parameters and launch generation to start batch rendering.</p>
+        </div>
+
+        <div id="jobProgressSection" class="hidden">
+          <div class="status-summary-card">
+            <div class="summary-top">
+              <div>
+                <span class="meta-label">Job Reference</span>
+                <div id="displayJobId" class="meta-code"></div>
+              </div>
+              <span id="displayStatus" class="status-badge"></span>
+            </div>
+
+            <div class="glass-progress-wrap">
+              <div id="progressBar" class="glass-progress-bar" style="width: 0%;"></div>
+            </div>
+
+            <div class="stats-pills-row">
+              <div class="stat-pill">
+                <span class="stat-val" id="statProcessed">0 / 0</span>
+                <span class="stat-lbl">Processed</span>
+              </div>
+              <div class="stat-pill success">
+                <span class="stat-val" id="statSuccess">0</span>
+                <span class="stat-lbl">Completed</span>
+              </div>
+              <div class="stat-pill failed">
+                <span class="stat-val" id="statFailed">0</span>
+                <span class="stat-lbl">Issues</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="zip-download-wrap">
+            <a id="downloadZipBtn" class="apple-btn-success hidden" href="#" download>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Download Batch ZIP Archive</span>
+            </a>
+          </div>
+
+          <div class="glass-table-container">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th>Recipient</th>
+                  <th>Status</th>
+                  <th>Certificate</th>
+                </tr>
+              </thead>
+              <tbody id="certificatesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
